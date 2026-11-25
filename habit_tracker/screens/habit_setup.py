@@ -113,6 +113,7 @@ HELP_TEXT = """\
   + / -           deep work ± 0.5h
   e / enter       write the day's sentence (enter / esc to finish)
   t               jump to today
+  g               switch graph: deep work / habits done
 
 [b]Months[/b]
   ← → / \\[ ]       previous / next month

@@ -34,6 +34,7 @@ The layout is built for a **104×51** terminal (JetBrains Mono): all 31 days, th
 | e / enter | write the day's sentence (enter or esc to finish) |
 | [ ] / ← → | previous / next month |
 | t | jump to today |
+| g | switch the graph between deep work hours and habits done per day |
 | h | edit this month's habits |
 | ? | help |
 | q | quit |

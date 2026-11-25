@@ -200,4 +200,31 @@ async def test_long_note_scrolls_back_to_start_after_enter(data_dir):
         assert note.cursor_position == 0
         assert note.scroll_offset.x == 0
         assert read(data_dir)["days"]["24"]["note"] == long_text
-        assert "dw hrs" in str(app.screen.query_one("#table-head").query(".col-dw").first().render())
+        assert "dw_hrs" in str(app.screen.query_one("#table-head").query(".col-dw").first().render())
+
+
+async def test_graph_toggles_to_habits_done(data_dir):
+    md = MonthData(2026, 11, ["A", "B", "C", "D"])
+    md.day(1).checks = {"A": True, "B": True, "C": True, "D": True}
+    md.day(2).checks = {"B": True}
+    md.day(2).deep_work = 3.0
+    storage.save(md)
+    app = HabitApp(today=TODAY)
+    async with app.run_test(size=SIZE) as pilot:
+        await pilot.pause()
+        chart = app.screen.query_one(DeepWorkChart)
+        box = app.screen.query_one("#chart-box")
+        assert chart.mode == "deep work" and chart.ys[1] == 3.0
+        await pilot.press("g")
+        await pilot.pause()
+        assert chart.mode == "habits done"
+        assert "habits done" in str(box.border_title)
+        assert "1[/] perfect day" in str(box.border_subtitle) or "perfect day" in str(box.border_subtitle)
+        assert chart.ys[:3] == [4.0, 1.0, 0.0]
+        assert chart.num_habits == 4  # y-axis tops out at the month's habit count
+        await pilot.press("1")  # toggling a habit updates the habits graph live
+        await pilot.pause()
+        assert chart.ys[23] == 1.0
+        await pilot.press("g")
+        await pilot.pause()
+        assert chart.mode == "deep work" and chart.ys[1] == 3.0

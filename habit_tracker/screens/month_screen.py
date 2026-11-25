@@ -14,6 +14,7 @@ from textual.widgets import Static
 from .. import storage
 from ..models import DEFAULT_HABITS, DayEntry, MonthData, diff_habits, next_month, prev_month
 from ..widgets import DayRow, DeepWorkChart, HabitLegend
+from ..widgets.deep_work_chart import HABITS, done_count
 from .habit_setup import ConfirmScreen, HabitSetupScreen, HelpScreen
 
 
@@ -22,6 +23,7 @@ class MonthScreen(Screen):
         Binding("left,left_square_bracket", "prev_month", "Prev month"),
         Binding("right,right_square_bracket", "next_month", "Next month"),
         Binding("t", "today", "Today"),
+        Binding("g", "toggle_graph", "Graph"),
         Binding("h", "edit_habits", "Habits"),
         Binding("question_mark", "help", "Help"),
         Binding("q", "quit", "Quit"),
@@ -35,6 +37,7 @@ class MonthScreen(Screen):
             ("e", "note"),
             ("←→", "month"),
             ("t", "today"),
+            ("g", "graph"),
             ("h", "habits"),
             ("?", "help"),
             ("q", "quit"),
@@ -96,10 +99,6 @@ class MonthScreen(Screen):
         self.month_data = md
         is_current = md.key == (self.today.year, self.today.month)
 
-        self.query_one("#chart-box").border_title = (
-            f"◀ [b #ffffff]{calendar.month_name[md.month]} {md.year}[/] ▶  ·  deep work"
-        )
-
         head = self.query_one("#table-head", Horizontal)
         await head.remove_children()
         numbers = [str(i) for i in range(1, len(md.habits) + 1)]
@@ -137,8 +136,9 @@ class MonthScreen(Screen):
         md = self.month_data
         if md is None:
             return
+        chart_widget = self.query_one(DeepWorkChart)
         if chart:
-            self.query_one(DeepWorkChart).refresh_data(md, self.today)
+            chart_widget.refresh_data(md, self.today)
         if md.key == (self.today.year, self.today.month):
             elapsed = self.today.day
         else:
@@ -146,10 +146,23 @@ class MonthScreen(Screen):
         elapsed = max(elapsed, 1)
         total = sum(e.deep_work for e in md.days.values())
         notes = sum(1 for e in md.days.values() if e.note)
-        self.query_one("#chart-box").border_subtitle = (
-            f"[b #ffffff]{total:g}h[/] total  ·  [b #ffffff]{total / elapsed:.1f}h[/] avg/day"
-            f"  ·  [b #ffffff]{notes}[/] moments"
+        box = self.query_one("#chart-box")
+        box.border_title = (
+            f"◀ [b #ffffff]{calendar.month_name[md.month]} {md.year}[/] ▶  ·  {chart_widget.mode}"
         )
+        if chart_widget.mode == HABITS:
+            counts = [done_count(md, d) for d in range(1, min(elapsed, md.num_days) + 1)]
+            n = len(md.habits)
+            perfect = sum(1 for c in counts if n and c == n)
+            box.border_subtitle = (
+                f"[b #ffffff]{sum(counts) / elapsed:.1f}[/] of {n} avg/day"
+                f"  ·  [b #ffffff]{perfect}[/] perfect day{'' if perfect == 1 else 's'}"
+            )
+        else:
+            box.border_subtitle = (
+                f"[b #ffffff]{total:g}h[/] total  ·  [b #ffffff]{total / elapsed:.1f}h[/] avg/day"
+                f"  ·  [b #ffffff]{notes}[/] moments"
+            )
         self.query_one(HabitLegend).items = [
             (name, f"{round(100 * md.checks_for(name) / elapsed)}%") for name in md.habits
         ]
@@ -172,7 +185,7 @@ class MonthScreen(Screen):
             storage.save(md)
         except OSError as exc:
             self.notify(f"Save failed: {exc}", severity="error")
-        self.refresh_stats(chart=event.deep_work_changed)
+        self.refresh_stats(chart=True)
 
     # -- actions -------------------------------------------------------------
 
@@ -195,6 +208,11 @@ class MonthScreen(Screen):
             self.focus_day(self.today.day)
         else:
             self.open_month(self.today.year, self.today.month)
+
+    def action_toggle_graph(self) -> None:
+        """Swap the chart between deep work hours and habits done per day."""
+        self.query_one(DeepWorkChart).toggle_mode()
+        self.refresh_stats(chart=True)
 
     def action_help(self) -> None:
         self.app.push_screen(HelpScreen())
