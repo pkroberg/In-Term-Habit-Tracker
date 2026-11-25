@@ -50,6 +50,11 @@ class NoteInput(Input):
 
     BINDINGS = [Binding("escape", "leave", "Done", show=False)]
 
+    def on_blur(self) -> None:
+        # After editing a long sentence, show its beginning again, not the end.
+        self.cursor_position = 0
+        self.scroll_to(x=0, animate=False)
+
     def action_leave(self) -> None:
         row = self.parent
         if isinstance(row, DayRow):

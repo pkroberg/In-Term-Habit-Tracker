@@ -87,7 +87,7 @@ Screen {
 }
 
 .col-dw {
-    width: 7;
+    width: 8;
     text-align: right;
     padding-right: 2;
 }

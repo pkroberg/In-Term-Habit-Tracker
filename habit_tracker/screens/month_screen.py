@@ -103,7 +103,7 @@ class MonthScreen(Screen):
         head = self.query_one("#table-head", Horizontal)
         await head.remove_children()
         numbers = [str(i) for i in range(1, len(md.habits) + 1)]
-        await head.mount_all(self._table_line("", "day", numbers, "deep", "memorable moment"))
+        await head.mount_all(self._table_line("", "day", numbers, "dw hrs", "memorable moment"))
 
         days = self.query_one("#days", VerticalScroll)
         await days.remove_children()

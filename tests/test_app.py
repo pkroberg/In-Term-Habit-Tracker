@@ -182,3 +182,22 @@ async def test_long_habit_names_fit_104x51(data_dir):
         assert screen.query_one(DeepWorkChart).size.height >= 10
         await pilot.press("5")
         assert read(data_dir, "2026-10.json")["days"]["31"]["checks"] == {names[4]: True}
+
+
+async def test_long_note_scrolls_back_to_start_after_enter(data_dir):
+    storage.save(MonthData(2026, 11, ["Gym"]))
+    app = HabitApp(today=TODAY)
+    async with app.run_test(size=SIZE) as pilot:
+        await pilot.pause()
+        note = app.focused.query_one(NoteInput)
+        long_text = "Spent the whole afternoon hiking up the ridge trail and watched the sunset over the bay"
+        await pilot.press("e", *["space" if c == " " else c for c in long_text])
+        await pilot.pause()
+        assert note.scroll_offset.x > 0  # scrolled to the end while typing
+        await pilot.press("enter")
+        await pilot.pause()
+        assert isinstance(app.focused, DayRow)
+        assert note.cursor_position == 0
+        assert note.scroll_offset.x == 0
+        assert read(data_dir)["days"]["24"]["note"] == long_text
+        assert "dw hrs" in str(app.screen.query_one("#table-head").query(".col-dw").first().render())
