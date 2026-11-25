@@ -1,0 +1,267 @@
+/*
+ * Two colours only: white for content, one dim gray for everything secondary
+ * (labels, empty and future days, unchecked habits). Backgrounds are
+ * transparent so the terminal's own background shows through.
+ * Laid out for a 104x51 terminal: all 31 days fit without scrolling and the
+ * chart gets every remaining row (the month title, totals and key hints live
+ * in the box borders to save space).
+ */
+
+$white: #ffffff;
+$gray: #aeb6c2;   /* keep in sync with GRAY in widgets/deep_work_chart.py */
+
+Screen {
+    background: ansi_default;
+    color: $white;
+    overflow-y: auto;
+    scrollbar-size-vertical: 1;
+    scrollbar-color: $gray;
+    scrollbar-color-hover: $white;
+    scrollbar-color-active: $white;
+    scrollbar-background: ansi_default;
+    scrollbar-background-hover: ansi_default;
+    scrollbar-background-active: ansi_default;
+}
+
+/* ---- boxes ---------------------------------------------------------------- */
+
+#chart-box, #table-box {
+    border: round $gray;
+    border-title-color: $gray;
+    border-title-style: none;
+    border-subtitle-color: $gray;
+    border-subtitle-style: none;
+    border-subtitle-align: right;
+    background: ansi_default;
+    padding: 0 1;
+}
+
+#chart-box {
+    height: 1fr;
+    min-height: 8;
+}
+
+#chart {
+    background: ansi_default;
+}
+
+#table-box {
+    height: auto;
+}
+
+/* ---- table ---------------------------------------------------------------- */
+
+.table-line {
+    height: 1;
+    color: $gray;
+}
+
+#table-head {
+    height: 1;
+}
+
+#days {
+    height: auto;
+    background: ansi_default;
+    scrollbar-size-vertical: 0;
+}
+
+.col-cursor {
+    width: 2;
+}
+
+.col-day {
+    width: 8;
+}
+
+.col-habit {
+    /* fixed and narrow: full names are shown in the legend below the table */
+    width: 5;
+    text-wrap: nowrap;
+}
+
+#legend {
+    height: auto;
+    border-top: solid $gray;
+    padding: 0 2;
+}
+
+.col-dw {
+    width: 7;
+    text-align: right;
+    padding-right: 2;
+}
+
+.col-note, .col-note-head {
+    width: 1fr;
+}
+
+/* ---- day rows ------------------------------------------------------------ */
+
+DayRow {
+    height: 1;
+    background: ansi_default;
+    color: $white;
+}
+
+DayRow .col-day,
+DayRow .col-dw {
+    color: $white;
+}
+
+/* empty and future days are dim gray */
+DayRow.-empty .col-day,
+DayRow.-empty .col-dw,
+DayRow.-future .col-day,
+DayRow.-future .col-dw {
+    color: $gray;
+}
+
+DayRow.-today .col-day {
+    text-style: bold underline;
+}
+
+DayRow .col-cursor {
+    color: $white;
+    text-style: bold;
+}
+
+DayRow.-cursor .col-day,
+DayRow.-cursor .col-dw,
+DayRow.-cursor HabitCell.-checked {
+    text-style: bold;
+}
+
+DayRow.-cursor.-today .col-day {
+    text-style: bold underline;
+}
+
+HabitCell {
+    color: $gray;
+    background: ansi_default;
+}
+
+HabitCell.-checked {
+    color: $white;
+}
+
+DayRow.-future HabitCell {
+    color: $gray;
+}
+
+/* ---- sentence input ------------------------------------------------------- */
+
+NoteInput, NoteInput:focus {
+    height: 1;
+    border: none;
+    padding: 0;
+    background: ansi_default;
+    background-tint: ansi_default 0%;
+    color: $white;
+
+    & > .input--placeholder {
+        color: $gray;
+        text-style: italic;
+    }
+    & > .input--cursor {
+        background: $white;
+        color: ansi_default;
+        text-style: reverse;
+    }
+    & > .input--selection {
+        background: $gray;
+    }
+}
+
+DayRow.-future NoteInput {
+    color: $gray;
+}
+
+/* ---- dialogs -------------------------------------------------------------- */
+
+HabitSetupScreen, ConfirmScreen, HelpScreen {
+    align: center middle;
+    background: ansi_default 0%;
+}
+
+.dialog {
+    width: 62;
+    height: auto;
+    padding: 1 2;
+    border: round $white;
+    background: ansi_default;
+    color: $white;
+}
+
+HabitSetupScreen .dialog {
+    width: 90;
+}
+
+.dialog-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.dialog-hint {
+    color: $gray;
+    margin-bottom: 1;
+}
+
+.dialog-keys {
+    color: $gray;
+    margin-top: 1;
+}
+
+.setup-slot {
+    height: 3;
+}
+
+.slot-num {
+    width: 3;
+    padding-top: 1;
+    color: $gray;
+}
+
+.setup-slot Input {
+    width: 1fr;
+    border: round $gray;
+    background: ansi_default;
+    background-tint: ansi_default 0%;
+    color: $white;
+
+    &:focus {
+        border: round $white;
+        background-tint: ansi_default 0%;
+    }
+    & > .input--placeholder {
+        color: $gray;
+    }
+    & > .input--cursor {
+        text-style: reverse;
+        background: $white;
+    }
+    & > .input--selection {
+        background: $gray;
+    }
+}
+
+.error {
+    height: auto;
+    color: $white;
+    text-style: bold;
+}
+
+/* ---- notifications -------------------------------------------------------- */
+
+Toast, Toast.-information, Toast.-warning, Toast.-error {
+    background: ansi_default;
+    border-left: none;
+    border: round $white;
+    color: $white;
+    padding: 0 1;
+
+    & > .toast--title {
+        color: $white;
+        text-style: bold;
+    }
+}

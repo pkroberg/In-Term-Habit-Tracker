@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "habit-tracker"
+version = "0.1.0"
+description = "In-terminal monthly habit tracker built with Textual"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "textual>=1.0",
+    "textual-plotext>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+habit = "habit_tracker.app:main"
+
+[tool.setuptools.packages.find]
+include = ["habit_tracker*"]
+
+[tool.setuptools.package-data]
+habit_tracker = ["*.tcss"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
